@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Yeh layout ko full screen aur stable banata hai */
+html, body, #root {
+  height: 100%;
+  overflow: hidden; /* Prevent whole-page scroll */
+}
