@@ -1,11 +1,11 @@
 
 import { Search, Download, Send } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+
 import { toast } from 'react-hot-toast';
 import { Pagination } from 'antd';
 import { Link } from 'react-router-dom';
-const url = import.meta.env.VITE_BACKEND_URL;
+import url from '../../services/url'
  import { useMyContext } from '../../contexts/AuthContext';
 
 
@@ -19,30 +19,30 @@ const InvoiceRaisedPage = () => {
   //pagination ka hai
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [totalItems,setTotalItems] = useState(0);
 
-  const filteredProjects = projects.filter((project) =>
-    project.projectName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredProjects.slice(indexOfFirstItem, indexOfLastItem);
-
-
-  useEffect(() => {
     const InvoiceRaised = async () => {
       try {
-        const res = await axios.get(`${url}/projects/invoice-raised`);
-        console.log("invoice ka data", res.data);
-        setProjects(res.data);
-      } catch (error) {
-        console.error("Failed to fetch sent projects", error);
+        const res = await url.get('/projects/invoice-raised',{
+          params:{
+            page: currentPage,
+            limit : itemsPerPage,
+            search : searchTerm,
+          }
+        });
+     
+        setProjects(res.data.projects);
+        setTotalItems(res.data.totalItems);
+        
+      } catch (err) {
+        console.error("Failed to fetch sent projects", err);
       }
     };
 
+    
+  useEffect(() => {
     InvoiceRaised();
-  }, []);
+  }, [currentPage,searchTerm]);
 
 
 
@@ -114,7 +114,7 @@ const InvoiceRaisedPage = () => {
           </thead>
 
           <tbody className="bg-white divide-y divide-gray-200">
-            {currentItems.map((project) => (
+            {projects.map((project) => (
               <tr key={project._id}>
                 <td className="px-4 py-3">
                   <input
@@ -159,7 +159,7 @@ const InvoiceRaisedPage = () => {
         <Pagination
           current={currentPage}
           pageSize={itemsPerPage}
-          total={filteredProjects.length}
+          total={totalItems}
           onChange={(page) => setCurrentPage(page)}
         />
       </div>

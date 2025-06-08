@@ -2,12 +2,11 @@ import React from 'react';
 import { Form, Input, Select, DatePicker, Button } from 'antd';
 import dayjs from 'dayjs';
 import { toast } from 'react-hot-toast';
-import axios from 'axios';
+import url from '../../services/url'
 import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
-const url = import.meta.env.VITE_BACKEND_URL;
 
 const CreateProjectPage = () => {
     const [form] = Form.useForm();
@@ -22,7 +21,7 @@ const CreateProjectPage = () => {
             };
            // console.log('Sending data:', formatted);
 
-            const res = await axios.post(`${url}/projects/create`,
+            const res = await url.post('projects/create',
                 formatted,
                 { headers: { 'Content-Type': 'application/json' } });
                 console.log("this is the created json data ",res);

@@ -8,7 +8,6 @@ function App() {
   return (
        <MyProvider>
         <div className="min-h-screen bg-gray-50 font-inter text-gray-900">
-       
         <AppRoutes />
          <Toaster/>
       </div>

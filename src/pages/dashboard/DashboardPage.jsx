@@ -13,7 +13,7 @@ import RecentProjectsList from '../../components/dashboard/RecentProjectsList'
 import { Link } from 'react-router-dom';
 import { Pagination } from 'antd';
 import { format } from 'date-fns';
-const url = import.meta.env.VITE_BACKEND_URL;
+import url from '../../services/url'
 
 const DashboardPage = () => {
     const [loading, setLoading] = useState(true);
@@ -21,21 +21,27 @@ const DashboardPage = () => {
     //pagination ka part hai
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
+    const [totalItems, setTotalItems] = useState(0);
+    const [statusCounts, setStatusCounts] = useState({}); // add kari
 
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = RecentProject.slice(indexOfFirstItem, indexOfLastItem);
 
 
 
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const res = await fetch(`${url}/projects/new`);
-                const data = await res.json();
-                console.log("Dashboard Projects Sample: ", data.slice(0, 3));
-                console.log(RecentProject)
-                setRecentProject(data);
+                const res = await url.get('/projects', {
+                    params: {
+                        page: currentPage,
+                        limit: itemsPerPage,
+                    }
+                });
+                  
+                console.log("Projects response:", res.data);
+                 setRecentProject(res.data.projects);
+                  setTotalItems(res.data.totalItems);
+                  setStatusCounts(res.data.counts); //add kari
+            
             } catch (error) {
                 console.error("Error fetching dashboard projects", error);
             } finally {
@@ -44,7 +50,7 @@ const DashboardPage = () => {
         };
 
         fetchProjects();
-    }, []);
+    }, [currentPage]);
 
 
     if (loading) {
@@ -55,12 +61,12 @@ const DashboardPage = () => {
         );
     }
 
-    // calculate count basec on status
-    const newCount = RecentProject.filter(p => p.status === 'New').length;
-    const sentToCEOCount = RecentProject.filter(p => p.status === 'Sent to CEO').length;
-    const approvedCount = RecentProject.filter(p => p.status === 'Approved by Client').length;
-    const invoiceRaisedCount = RecentProject.filter(p => p.status === 'Invoice Raised').length;
-    const totalCount = RecentProject.length;
+    // calculate count based on status
+  const newCount = statusCounts["New"] || 0;
+const sentToCEOCount = statusCounts["Sent to CEO"] || 0;
+const approvedCount = statusCounts["Approved by Client"] || 0; //add kari
+const invoiceRaisedCount = statusCounts["Invoice Raised"] || 0;
+const totalCount = Object.values(statusCounts).reduce((a, b) => a + b, 0);
 
 
 
@@ -129,13 +135,13 @@ const DashboardPage = () => {
                 </div>
 
                 <div>
-                    <RecentProjectsList projects={currentItems} />
+                    <RecentProjectsList projects={RecentProject} />
                 </div>
                 <div className='mt-6 flex justify-center'>
                     <Pagination
                         current={currentPage}
                         pageSize={itemsPerPage}
-                        total={RecentProject.length}
+                        total={totalItems}
                         onChange={(page) => setCurrentPage(page)}
                     />
                 </div>
@@ -143,8 +149,8 @@ const DashboardPage = () => {
 
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Today's Activity */}
-            
-                     <div className=" bg-white rounded-lg shadow-lg shadow-purple-500">
+
+                    <div className=" bg-white rounded-lg shadow-lg shadow-purple-500">
                         <h2 className=" text-center  mt-3 font-semibold text-gray-900 mb-4 tracking-wider">Today's Activity</h2>
                         <div className="space-y-4">
                             {[...RecentProject]
@@ -189,7 +195,7 @@ const DashboardPage = () => {
                                     </div>
                                 ))}
                         </div>
-                    </div> 
+                    </div>
 
                     {/* Summary */}
                     <div className="p-4 bg-white rounded-lg shadow-lg shadow-purple-500 ">

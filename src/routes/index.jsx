@@ -1,21 +1,24 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectRoute from './ProtectRoute';
-import Login from '../pages/auth/Login';
-import Register from '../pages/auth/Register';
-import DashboardPage from '../pages/dashboard/DashboardPage';
-import Layout from '../components/layout/Layout';
-import NewProjectPage from '../pages/projects/NewProjectPage';
-import SentToCEOPage from '../pages/projects/sentToCEOPage';
-import ApprovedByClientPage from '../pages/projects/ApprovedByClientPage';
-import InvoiceRaisedPage from '../pages/projects/InvoiceRaisedPage'
-import CreateProjectPage from '../pages/projects/CreateProjectPage';
-import ProjectDetails from '../pages/projects/ProjectDetails';
+import  { Suspense, lazy } from 'react';
+
+const Register = lazy(() => import('../pages/auth/Register'));
+const Login = lazy(()=> import ('../pages/auth/Login'));
+const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage'));
+const Layout = lazy(() => import('../components/layout/Layout'));
+const NewProjectPage = lazy(() => import('../pages/projects/NewProjectPage'));
+const SentToCEOPage = lazy(() => import('../pages/projects/SentToCEOPage'));
+const ApprovedByClientPage = lazy(() => import('../pages/projects/ApprovedByClientPage'));
+const InvoiceRaisedPage = lazy(() => import('../pages/projects/InvoiceRaisedPage'));
+const CreateProjectPage = lazy(() => import('../pages/projects/CreateProjectPage'));
+const ProjectDetails = lazy(() => import('../pages/projects/ProjectDetails'));
 
 
 
 const AppRoutes = () => {
   return (
+     <Suspense fallback={<div className="text-center text-lg">Loading...</div>}>
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
@@ -42,6 +45,7 @@ const AppRoutes = () => {
 
       </Route>
     </Routes>
+    </Suspense> 
   );
 };
 

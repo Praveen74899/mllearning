@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 
-        //export file  ko download karega or convert karega xlsx me
+
+  //export file  ko download karega or convert karega xlsx me
   import * as XLSX from "xlsx"; // convert project data ko xlxs me 
 import { saveAs } from "file-saver"; //download project data
 
-const url = import.meta.env.VITE_BACKEND_URL;
+import url from '../services/url'
 const MyContext = createContext();
 
 export const MyProvider = ({ children }) => {
@@ -25,7 +25,7 @@ export const MyProvider = ({ children }) => {
   //  Login
   const login = async (email, password) => {
     try {
-      const res = await axios.post(`${url}/api/login`,
+      const res = await url.post('/api/login',
         { email, password },
         { headers: { 'Content-Type': 'application/json' } });
 
@@ -41,7 +41,7 @@ export const MyProvider = ({ children }) => {
   //  Register
   const register = async (name, email, password) => {
     try {
-      const res = await axios.post(`${url}/api/register`,
+      const res = await url.post('/api/register',
         { name, email, password },
         { headers: { 'Content-Type': 'application/json' } });
 

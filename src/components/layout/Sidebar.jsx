@@ -31,7 +31,7 @@ const Sidebar = () => {
 
   return (
     <div className={`bg-slate-200 text-black transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'} min-h-screen flex flex-col justify-between`}>
-      
+
       {/* Top Section */}
       <div>
         <div className="flex items-center justify-between px-4 py-4">
@@ -50,10 +50,9 @@ const Sidebar = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center px-3 py-2 rounded-md text-sm text-black font-medium transition-colors ${
-                  isActive
-                    ? 'bg-purple-600 text-white'
-                    : 'text-black hover:bg-gray-700'
+                `flex items-center px-3 py-2 rounded-md text-sm text-black font-medium transition-colors ${isActive
+                  ? 'bg-purple-600 text-white'
+                  : 'text-black hover:bg-gray-700'
                 }`
               }
             >
@@ -80,14 +79,15 @@ const Sidebar = () => {
           </div>
           <button
             onClick={logout}
-            className="mt-3 w-full flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md text-gray-700  shadow shadow-violet-500 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-gray-700 bg-white border border-gray-300 shadow shadow-violet-500 hover:bg-gray-50 transition-all duration-200"
           >
-            <LogOut size={16} className="mr-2" />
-            Logout
+            <LogOut size={18} className="text-gray-700" />
+            {!collapsed && <span className="truncate">Logout</span>}
           </button>
+
         </div>
       </div>
-      
+
     </div>
   );
 };
