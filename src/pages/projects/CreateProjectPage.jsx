@@ -37,13 +37,18 @@ const CreateProjectPage = () => {
 
     };
 
+
     return (
+        <div className="min-h-screen bg-gray-100 p-4 ">
+  <div className="bg-white shadow-md rounded-lg p-4 sm:p-6 md:p-8 max-w-xl mx-auto ">
+    
         <Form
             //form.resetFields();
             form={form}
             layout="vertical"
             onFinish={onFinish}
             style={{ maxWidth: 600, margin: '0 auto' }}
+            className='grid grid-cols-2 gap-2'
         >
             <Form.Item
                 label="Project Name"
@@ -122,12 +127,14 @@ const CreateProjectPage = () => {
                 <Input />
             </Form.Item>
 
-            <Form.Item>
+            <Form.Item className="col-span-2 text-center">
                 <Button type="primary" htmlType="submit">
                     Create Project
                 </Button>
             </Form.Item>
         </Form>
+        </div>
+        </div>
     );
 };
 

@@ -1,19 +1,18 @@
-import React from 'react'
+import React from 'react';
 
-const StatsCart = ({title,value,icon,linkTo,iconBgColor,iconColor}) => {
+const StatsCart = ({ title, value, icon, iconBgColor, iconColor, linkTo }) => {
   return (
-    <div className="flex items-center bg-white border border-gray-300 rounded-xl p-2 shadow shadow-purple-500">
-         <div className={`p-3 rounded-full mr-4 ${iconBgColor} ${iconColor}`}>
-            {icon}
-         </div>
- 
-         <div >
-            <p>{title}</p>
-            <h1>{value}</h1>
-         </div>
-
+    <div className="w-full bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4">
+      <div className={`p-3 rounded-full ${iconBgColor} ${iconColor} text-xl`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm text-gray-600">{title}</p>
+        <h1 className="text-xl font-bold text-gray-800">{value}</h1>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default StatsCart
+
+export default StatsCart;

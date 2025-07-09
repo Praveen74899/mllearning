@@ -34,7 +34,12 @@ const projectSchema = new mongoose.Schema({
   type: String,
   enum: ['New', 'Sent to CEO', 'Approved by Client', 'Invoice Raised'],
   default: 'New'
-}
+},
+ createdAt: {
+    type: Date,
+    default: Date.now
+  }
+
 });
 const Project = mongoose.model('Project', projectSchema);
 

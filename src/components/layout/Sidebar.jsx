@@ -1,4 +1,3 @@
-// Sidebar.jsx
 import { useState } from 'react';
 import { useMyContext } from '../../contexts/AuthContext';
 import {
@@ -20,9 +19,9 @@ const navItems = [
   { label: 'Invoice Raised', path: '/projects/invoice-raised', icon: <FileCheck size={18} /> },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const { user, setUser } = useMyContext(); // Fix: include setUser
+  const { user, setUser } = useMyContext();
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -30,65 +29,86 @@ const Sidebar = () => {
   };
 
   return (
-    <div className={`bg-slate-200 text-black transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'} min-h-screen flex flex-col justify-between`}>
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-40 sm:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      {/* Top Section */}
-      <div>
-        <div className="flex items-center justify-between px-4 py-4">
-          <h1 className={`font-bold text-lg ${collapsed ? 'hidden' : 'block'}`}>ML PROJECTS</h1>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-gray-400 hover:text-white"
-          >
-            {collapsed ? '➡️' : '⬅️'}
-          </button>
+      <div
+        className={`bg-slate-200 text-black transition-all duration-300 min-h-screen flex flex-col justify-between z-50 ${
+          collapsed ? 'w-16' : 'w-64'
+        } ${isOpen ? 'fixed inset-y-0 left-0' : 'hidden sm:flex'} sm:relative`}
+      >
+        {/* Top Section */}
+        <div>
+          <div className="flex items-center justify-between px-4 py-4">
+            <h1 className={`font-bold text-lg text-purple-700 ${collapsed ? 'hidden' : 'block'}`}>
+              ML PROJECTS
+            </h1>
+
+  
+
+            {/* Close for mobile */}
+            <button
+              onClick={onClose}
+              className="sm:hidden text-gray-600 hover:text-black ml-2"
+            >
+              ❌
+            </button>
+          </div>
+ 
+          {/* Nav Items */}
+          <nav className="mt-4 space-y-1 px-2">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive ? 'bg-purple-600 text-white' : 'text-black hover:bg-gray-300'
+                  }`
+                }
+                onClick={onClose}
+              >
+                <span className="mr-3">{item.icon}</span>
+                {!collapsed && item.label}
+              </NavLink>
+            ))}
+          </nav>
         </div>
 
-        <nav className="mt-4 space-y-1 px-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center px-3 py-2 rounded-md text-sm text-black font-medium transition-colors ${isActive
-                  ? 'bg-purple-600 text-white'
-                  : 'text-black hover:bg-gray-700'
-                }`
-              }
-            >
-              <span className="mr-3">{item.icon}</span>
-              {!collapsed && item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </div>
-
-      {/* User Section at Bottom */}
-      <div className="px-3 mb-4">
-        <div className="p-3 bg-gray-50 shadow shadow-violet-500 rounded-md">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
+        {/* Bottom Section */}
+        <div className="px-3 mb-4">
+          <div className="p-3 bg-gray-50 shadow shadow-violet-500 rounded-md flex flex-col items-center justify-center">
+            <div className="flex items-center gap-2 w-full justify-center">
               <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
                 <User size={16} className="text-purple-600" />
               </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                </div>
+              )}
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            </div>
-          </div>
-          <button
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-gray-700 bg-white border border-gray-300 shadow shadow-violet-500 hover:bg-gray-50 transition-all duration-200"
-          >
-            <LogOut size={18} className="text-gray-700" />
-            {!collapsed && <span className="truncate">Logout</span>}
-          </button>
 
+            <button
+              onClick={logout}
+              className={`mt-3 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-gray-700 border border-gray-300 shadow shadow-violet-500 hover:bg-gray-50 transition w-full ${
+                collapsed ? 'flex-col p-2' : ''
+              }`}
+            >
+              <LogOut size={18} className="text-gray-700" />
+              {!collapsed && <span className="truncate">Logout</span>}
+            </button>
+          </div>
         </div>
       </div>
-
-    </div>
+    </>
   );
 };
 

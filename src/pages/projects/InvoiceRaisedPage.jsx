@@ -1,169 +1,226 @@
-
-import { Search, Download, Send } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-
 import { toast } from 'react-hot-toast';
-import { Pagination } from 'antd';
-import { Link } from 'react-router-dom';
-import url from '../../services/url'
- import { useMyContext } from '../../contexts/AuthContext';
-
+import { useMyContext } from '../../contexts/AuthContext';
+import CommanTable from '../../comman/CommanTable';
+import url from '../../services/url';
+import dayjs from 'dayjs';
+import { Tag, Button, Input, Space } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import { useRef } from 'react';
 
 const InvoiceRaisedPage = () => {
   const [projects, setProjects] = useState([]);
-  const [selectedProjects, setSelectedProjects] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-
-   const {exportToExcel} = useMyContext();
-
-  //pagination ka hai
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-  const [totalItems,setTotalItems] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const searchInput = useRef(null);
+    const [searchedColumn, setSearchedColumn] = useState('');
+const [sortedInfo, setSortedInfo] = useState({});
 
-    const InvoiceRaised = async () => {
-      try {
-        const res = await url.get('/projects/invoice-raised',{
-          params:{
-            page: currentPage,
-            limit : itemsPerPage,
-            search : searchTerm,
-          }
-        });
-     
-        setProjects(res.data.projects);
-        setTotalItems(res.data.totalItems);
-        
-      } catch (err) {
-        console.error("Failed to fetch sent projects", err);
-      }
-    };
+  const { exportToExcel,getStatusColor } = useMyContext();
 
-    
+  const fetchProjects = async () => {
+    try {
+      const res = await url.get('/projects/invoice-raised', {
+        params: {
+          page: currentPage,
+          limit: pageSize,
+          search: searchTerm,
+        },
+      });
+
+      setProjects(res.data.projects);
+      setTotalItems(res.data.totalItems);
+    } catch (err) {
+      console.error('Failed to fetch invoice raised projects', err);
+      toast.error("Error fetching projects");
+    }
+  };
+
   useEffect(() => {
-    InvoiceRaised();
-  }, [currentPage,searchTerm]);
+    fetchProjects();
+  }, [currentPage, pageSize, searchTerm]);
+
+  const handleExport = () => {
+    exportToExcel(projects, 'invoice-raised-projects');
+  };
+
+   const handleSearch = (selectedKeys, confirm, dataIndex) => {
+  confirm();
+  setSearchText(selectedKeys[0]);
+  setSearchedColumn(dataIndex);
+};
+
+
+    const getColumnSearchProps = dataIndex => ({
+  filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
+      <Input
+        ref={searchInput}
+        placeholder={`Search ${dataIndex}`}
+        value={selectedKeys[0]}
+        onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+        onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+        style={{ marginBottom: 8, display: 'block' }}
+      />
+      <Space>
+        <Button
+          type="primary"
+          onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          icon={<SearchOutlined />}
+          size="small"
+          style={{ width: 90 }}
+        >
+          Search
+        </Button>
+        <Button onClick={() => handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+          Reset
+        </Button>
+      </Space>
+    </div>
+  ),
+  filterIcon: filtered => (
+    <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+  ),
+  onFilter: (value, record) =>
+    record[dataIndex]?.toString().toLowerCase().includes(value.toLowerCase()),
+  render: text =>
+    searchedColumn === dataIndex ? (
+      <span style={{ backgroundColor: '#ffc069', padding: 0 }}>{text}</span>
+    ) : (
+      text
+    ),
+});
 
 
 
-  const handleExport = async ()=>{
-   exportToExcel(projects, "projects");
-}
+
+const handleTableChange = (pagination, filters, sorter) => {
+  setSortedInfo(sorter);
+};
+
+
+
+  const columns = [
+ {
+    title: 'PROJECT ID',
+    dataIndex: '_id',
+    key: '_id',
+  
+ },
+
+  {
+    title: 'PROJECT NAME',
+    dataIndex: 'projectName',
+    key: 'projectName',
+    ...getColumnSearchProps('projectName'),
+     sorter: (a, b) => a.projectName.localeCompare(b.projectName),
+  sortOrder: sortedInfo.columnKey === 'projectName' && sortedInfo.order,
+  },
+  {
+    title: 'TYPE',
+    dataIndex: 'projectType',
+    key: 'projectType',
+    ...getColumnSearchProps('projectType'),
+      sorter: (a, b) => a.projectType.localeCompare(b.projectType),
+  sortOrder: sortedInfo.columnKey === 'projectType' && sortedInfo.order,
+  },
+  {
+    title: 'CLIENT',
+    dataIndex: 'endClient',
+    key: 'endClient',
+    ...getColumnSearchProps('endClient'),
+      sorter: (a, b) => a.endClient.localeCompare(b.endClient),
+  sortOrder: sortedInfo.columnKey === 'endClient' && sortedInfo.order,
+  },
+  {
+    title: 'DATE RECEIVED',
+    dataIndex: 'dateReceived',
+    key: 'dateReceived',
+    render: (date) => dayjs(date).format('DD/MM/YYYY'),
+    ...getColumnSearchProps('dateReceived'),
+       sorter: (a, b) => new Date(a.dateReceived) - new Date(b.dateReceived),
+    sortOrder: sortedInfo.columnKey === 'dateReceived' ? sortedInfo.order : null,
+  },
+  {
+    title: 'STATUS',
+    dataIndex: 'status',
+    key: 'status',
+    render: (status) => <Tag color={getStatusColor(status)}>{status}</Tag>,
+    ...getColumnSearchProps('status'),
+      sorter: (a, b) => a.status.localeCompare(b.status),
+  sortOrder: sortedInfo.columnKey === 'status' && sortedInfo.order,
+  },
+  {
+    title: 'ACTION',
+    key: 'action',
+    render: (_, record) => (
+      <Button onClick={() => navigate(`/projects/${record._id}`)}>View</Button>
+    ),
+  },
+ 
+];
+
+
+
+
+
 
 
   return (
-    <div className='p-4'>
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative">
+    <div className="p-4">
+      {/* Header actions */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4 w-full mb-4">
+        <div className="relative w-full sm:w-auto">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
           <input
             type="text"
             placeholder="Search projects..."
-            className="pl-10 input max-w-sm border-gray-600 shadow-lg p-3 rounded-lg"
+            className="pl-10 input max-w-sm border-gray-600 shadow-lg p-3 rounded-lg w-full"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleExport}
-            className=" bg-purple-600 p-2 text-white rounded-lg flex items-center gap-2"
-          >
-            <Download size={18} />
-            <span>Export</span>
-          </button>
 
-
-        </div>
+        <button
+          onClick={handleExport}
+          className="bg-purple-600 p-2 text-white rounded-lg flex items-center gap-2"
+        >
+          <Download size={18} />
+          <span>Export</span>
+        </button>
       </div>
 
-
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mt-3">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3">
-                <div className="flex items-center gap-2">
-
-
-                  <input
-                    type="checkbox"
-                    checked={projects.length > 0 && selectedProjects.length === projects.length}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedProjects(projects.map(p => p._id)); // select all
-                      } else {
-                        setSelectedProjects([]); // deselect all
-                      }
-                    }}
-                    className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                  />
-                  <span className="text-xs font-medium text-gray-500 uppercase">Select</span>
-                </div>
-              </th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Received</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">View</th>
-            </tr>
-          </thead>
-
-          <tbody className="bg-white divide-y divide-gray-200">
-            {projects.map((project) => (
-              <tr key={project._id}>
-                <td className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedProjects.includes(project._id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedProjects([...selectedProjects, project._id]);
-                      } else {
-                        setSelectedProjects(selectedProjects.filter(id => id !== project._id));
-                      }
-                    }}
-                    className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                  />
-
-                </td>
-                <td className="px-4 py-3">{project.projectName}</td>
-                <td className="px-4 py-3">{project.projectType}</td>
-                <td className="px-4 py-3">{project.endClient}</td>
-                <td className="px-4 py-3">{new Date(project.dateReceived).toLocaleDateString()}</td>
-                <td className="px-4 py-3">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                    {project.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <Link
-                    to={`/projects/${project._id}`}
-                    className="text-purple-600 hover:text-purple-900"
-                  >
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-
-        </table>
-      </div>
-
-      <div className='mt-6 flex justify-center'>
-        <Pagination
-          current={currentPage}
-          pageSize={itemsPerPage}
-          total={totalItems}
-          onChange={(page) => setCurrentPage(page)}
+      {/* Table */}
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <CommanTable
+          projectdata={projects}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: totalItems,
+            showSizeChanger: true,
+            pageSizeOptions: ['5', '10', '20'],
+            onChange: (page, size) => {
+              setCurrentPage(page);
+              setPageSize(size);
+            },
+          }}
+          selectedRowKeys={selectedRowKeys}
+          setSelectedRowKeys={setSelectedRowKeys}
+           columns={columns}
+             onChange={handleTableChange}
         />
       </div>
-
     </div>
   );
 };

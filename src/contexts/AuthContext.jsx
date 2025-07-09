@@ -33,9 +33,12 @@ export const MyProvider = ({ children }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser({ ...user, token });
-    } catch (error) {
-      throw error;
-    }
+      
+    return true;
+    }catch (error) {
+  console.error(error);
+  res.status(500).json({ message: 'Login failed' });
+}
   };
 
   //  Register
@@ -56,6 +59,7 @@ export const MyProvider = ({ children }) => {
       } else {
         alert("Server se connection nahi ban raha.");
       }
+          return false; 
     }
   };
 
@@ -63,36 +67,44 @@ export const MyProvider = ({ children }) => {
 
 
 
- const exportToExcel = (data, fileName = "data") => {
-  // Step 1: Data se worksheet banao
+ 
+const exportToExcel = (data, fileName = "data") => {
+  // Step 1: JSON data to worksheet
   const worksheet = XLSX.utils.json_to_sheet(data);
 
-  // Step 2: Workbook (Excel file) banao aur worksheet daalo
+  // Step 2: Create a workbook and append the worksheet
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
 
-  // Step 3: Excel file ko binary me convert karo
+  // Step 3: Generate buffer
   const excelBuffer = XLSX.write(workbook, {
     bookType: "xlsx",
     type: "array",
   });
 
-  // Step 4: Excel ko download karo
+  // Step 4: Create blob and trigger download
   const blob = new Blob([excelBuffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 
   saveAs(blob, `${fileName}.xlsx`);
 };
-
   
 
+const getStatusColor = (status) => {
+    switch (status) {
+      case 'New': return 'blue';
+      case 'Sent to CEO': return 'orange';
+      case 'Approved by Client': return 'green';
+      case 'Invoice Raised': return 'purple';
+      default: return 'default';
+    }
+  };
 
 
 
 
-
-  const value = { user, setUser, login, register,loading,exportToExcel };
+  const value = { user, setUser, login, register,loading,exportToExcel,getStatusColor };
 
   return (
     <MyContext.Provider value={value}>

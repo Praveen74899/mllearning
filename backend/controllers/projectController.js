@@ -68,6 +68,7 @@ exports.getNewProjects = async (req, res) => {
     let { page = 1, limit = 5, search = '' } = req.query;
     page = parseInt(page);
     limit = parseInt(limit);
+    
 
     // Filter for only "New" status projects + search on projectName
     const filter = {
@@ -101,60 +102,110 @@ exports.getNewProjects = async (req, res) => {
 
 
 
-// dashboard pe pagination or controller
+// dashboard pe pagination or controller count karega project ko state me show karega 
 
- exports.getDashboardController = async(req,res) =>{
-     try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
+//  exports.getDashboardController = async(req,res) =>{
+//      try {
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 5;
+//      const search = req.query.search || "";
 
-    const filter = {};
+//     const filter = {
+//       projectName: { $regex: search, $options: "i" }  // case-insensitive search
+//     };
    
-    const totalItems = await Project.countDocuments(filter);
+//     const totalItems = await Project.countDocuments(filter);
 
-
-    const projects = await Project.find(filter)
-  .skip((page - 1) * limit)
-  .limit(limit);
-
-// 👇 status-wise count laane ke liye aggregate use karte hain
-const statusCountsArray = await Project.aggregate([
-  {
-    $group: {
-      _id: "$status",
-      count: { $sum: 1 }
-    }
-  }
-]);
-
-// 👇 Is array ko object me convert karte hain
-const counts = {};
-statusCountsArray.forEach(item => {
-  counts[item._id] = item.count;
-});
-
-// ✅ Final Response
-res.status(200).json({
-  projects,
-  totalItems,
-  counts, // 👈 yeh frontend me jayega
-});
 
 //     const projects = await Project.find(filter)
-//       .sort({ createdAt: -1 }) // latest first
-//       .skip((page - 1) * limit)
-//       .limit(limit);
+//   .skip((page - 1) * limit)
+//   .limit(limit);
 
-//     res.status(200).json({ projects, totalItems });
+// // 👇 status-wise count laane ke liye aggregate use karte hain
+// const statusCountsArray = await Project.aggregate([
+//   {
+//     $group: {
+//       _id: "$status",
+//       count: { $sum: 1 }
+//     }
+//   }
+// ]);
+                                                      
+// // 👇 Is array ko object me convert karte hain 
+// const counts = {};
+// statusCountsArray.forEach(item => {
+//   counts[item._id] = item.count;
+// });
+
+// // ✅ Final Response
+// res.status(200).json({
+//   projects,
+//   totalItems,
+//   counts, // 👈 yeh frontend me jayega
+// });
+
+
+//   } catch (err) {
+//     console.error("Pagination error:", err);
+//     res.status(500).json({ message: "Server Error" });
+//   }
+//  };
+
+
+
+exports.getDashboardController = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const search = req.query.search || "";
+
+    // 🔍 Search filter
+    const filter = {
+      projectName: { $regex: search, $options: "i" }
+    };
+
+    // 🔢 Total items count
+    const totalItems = await Project.countDocuments(filter);
+
+    // 📄 Paginated data
+    const projects = await Project.find(filter)
+      .sort({ createdAt: -1 }) // latest first
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    // 📊 Status-wise count
+    const statusCountsArray = await Project.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const counts = {};
+    statusCountsArray.forEach(item => {
+      counts[item._id] = item.count;
+    });
+
+    // ⏱ Recent 3 projects (overall, not paginated)
+    const recentProjects = await Project.find()
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    // ✅ Final response
+    res.status(200).json({
+      projects,         // paginated
+      totalItems,
+      counts,           // status-wise counts
+      recentProjects    // latest 3
+    });
 
   } catch (err) {
-    console.error("Pagination error:", err);
+    console.error("Dashboard error:", err);
     res.status(500).json({ message: "Server Error" });
   }
- };
-
-
-
+};
 
 
 
@@ -240,17 +291,6 @@ exports.getSentToCEOProjects = async (req, res) => {
 
 
 
-// exports.getApprovedProjects = async (req, res) => {
-//     try {
-//         const ApprovedProjects = await Project.find({ status: "Approved by Client"});
-//         console.log(ApprovedProjects)
-//         res.status(200).json(ApprovedProjects);
-//     } catch (err) {
-//         console.error("Error fetching Sent to CEO projects:", err);
-//         res.status(500).json({ error: "Server error" });
-//     }
-// }
-
 
  exports.getApprovedProjects = async (req, res) => {
   try {
@@ -286,39 +326,6 @@ exports.getSentToCEOProjects = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-// exports.getInvoiceProjects = async (req, res) => {
-//     try {
-//         const ApprovedProjects = await Project.find({ status: "Invoice Raised"});
-//         console.log(ApprovedProjects)
-//         res.status(200).json(ApprovedProjects);
-//     } catch (err) {
-//         console.error("Error fetching Sent to CEO projects:", err);
-//         res.status(500).json({ error: "Server error" });
-//     }
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // GET /projects/:id
 exports.getProjectById = async (req, res) => {
   try {
@@ -330,29 +337,10 @@ exports.getProjectById = async (req, res) => {
   }
 };
 
-// controllers/projectController.js
-// exports.getInvoiceProjects = async (req, res) => {
-//   try {
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = parseInt(req.query.limit) || 5;
-//     const search = req.query.search || "";
 
-//     const filter = {
-//       status: "Invoice Raised",
-//       projectName: { $regex: search, $options: "i" }
-//     };
 
-//     const totalItems = await Project.countDocuments(filter);
-//     const projects = await Project.find(filter)
-//       .skip((page - 1) * limit)
-//       .limit(limit);
 
-//     res.json({ projects, totalItems });
-//   } catch (error) {
-//     console.error("Error fetching invoice raised projects:", error);
-//     res.status(500).json({ message: "Failed to fetch invoice raised projects" });
-//   }
-// };
+
 
 // controllers/projectController.js
 exports.getInvoiceProjects = async (req, res) => {

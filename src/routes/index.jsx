@@ -5,9 +5,13 @@ import  { Suspense, lazy } from 'react';
 
 const Register = lazy(() => import('../pages/auth/Register'));
 const Login = lazy(()=> import ('../pages/auth/Login'));
+const ForgetPassword = lazy(()=> import ('../pages/auth/ForgetPassword'));
+const ResetPassword = lazy(()=> import ('../pages/auth/ResetPassword'));
+
 const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage'));
 const Layout = lazy(() => import('../components/layout/Layout'));
-const NewProjectPage = lazy(() => import('../pages/projects/NewProjectPage'));
+
+const NewProjectPage = lazy(()=> import('../pages/projects/NewProjectPage'));
 const SentToCEOPage = lazy(() => import('../pages/projects/SentToCEOPage'));
 const ApprovedByClientPage = lazy(() => import('../pages/projects/ApprovedByClientPage'));
 const InvoiceRaisedPage = lazy(() => import('../pages/projects/InvoiceRaisedPage'));
@@ -23,6 +27,8 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path='/forgetpassword' element={<ForgetPassword/>}/>
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       {/* Protected Routes */}
       <Route path="/" element={<ProtectRoute />}>

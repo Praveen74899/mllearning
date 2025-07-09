@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import url from '../../services/url';
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const [project, setProject] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/projects/${id}`)
+    url.get(`/projects/${id}`)
       .then(res => setProject(res.data))
       .catch(err => console.error('Error fetching project:', err));
   }, [id]);
 
   if (!project) return <div className="text-center text-gray-500 p-10">Loading...</div>;
+
+
 
   return (
   <div className="flex justify-center items-center bg-gray-100 px-4 py-10">
@@ -38,11 +40,7 @@ const ProjectDetails = () => {
       >
         ⬅️ Back
       </button>
-      <button
-        className="px-4 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition"
-      >
-        ✏️ Edit Project
-      </button>
+     
     </div>
   </div>
 </div>
